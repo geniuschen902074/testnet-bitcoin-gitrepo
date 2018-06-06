@@ -1440,7 +1440,7 @@ static UniValue getbestchaintps(const JSONRPCRequest& request)
     }
 
     //const CBlockIndex* genesis = chainActive.Genesis();
-    CBlockIndex *pindexPast = tip->GetAncestor(tip->nHeight - blockcount);
+    const CBlockIndex *pindexPast = tip->GetAncestor(tip->nHeight - blockcount);
 
     int nTxDiff = tip->nChainTx - pindexPast->nChainTx;
     int nTimeDiff = tip->GetMedianTimePast() - pindexPast->GetMedianTimePast();
