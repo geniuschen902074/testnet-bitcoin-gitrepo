@@ -1415,13 +1415,16 @@ UniValue reconsiderblock(const JSONRPCRequest& request)
     return NullUniValue;
 }
 
+/*Chen*/
 static UniValue getbestchaintps(const JSONRPCRequest& request)
 {
-    if (request.fHelp)
+    if (request.fHelp || request.params.size() != 1)
         throw std::runtime_error(
             "getchaintxstats ( nblocks blockhash )\n"
             "\nCompute statistics about the rate of transactions in the best chain.\n"
             "\nResult:\n"
+            "\nArguments:\n"
+            "1. nblocks      (numeric, optional) Size of the window in number of blocks (default: one month).\n"
             "n.nnn       (numeric) tps\n"
             "\nExamples:\n"
             + HelpExampleCli("getbestchaintps", "")
@@ -1431,10 +1434,16 @@ static UniValue getbestchaintps(const JSONRPCRequest& request)
 
     const CBlockIndex* tip = chainActive.Tip();
     assert(tip != nullptr);
-    const CBlockIndex* genesis = chainActive.Genesis();
+    int blockcount = request.params[0].get_int();
+    if (blockcount < 0 || (blockcount > 0 && blockcount >= tip->nHeight)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid block count: should be between 0 and the tip's height - 1");
+    }
 
-    int nTxDiff = tip->nChainTx - genesis->nChainTx;
-    int nTimeDiff = tip->GetMedianTimePast() - genesis->GetMedianTimePast();
+    //const CBlockIndex* genesis = chainActive.Genesis();
+    CBlockIndex *pindexPast = tip->GetAncestor(tip->nHeight - blockcount);
+
+    int nTxDiff = tip->nChainTx - pindexPast->nChainTx;
+    int nTimeDiff = tip->GetMedianTimePast() - pindexPast->GetMedianTimePast();
 
     double tps = 0;
     if(nTimeDiff > 0) tps = ((double)nTxDiff) / nTimeDiff;
