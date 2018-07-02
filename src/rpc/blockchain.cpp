@@ -1445,15 +1445,14 @@ static UniValue getbestchaintps(const JSONRPCRequest& request)
     int nTxDiff = tip->nChainTx - pindexPast->nChainTx;
     int nTimeDiff = tip->GetMedianTimePast() - pindexPast->GetMedianTimePast();
 
-    UniValue ret(UniValue::VNUM/*VOBJ*/);
+    /*UniValue ret(UniValue::VOBJ);*/
     double tps = 0;
     if(nTimeDiff > 0){
         tps = ((double)nTxDiff) / nTimeDiff;
-        //ret.pushKV("tps", tps);
-        ret.pushKV(tps);
+        /*ret.pushKV("tps", tps);*/
     }
 
-    return ret/*tps*/;
+    return /*ret*/tps;
 }
 
 static const CRPCCommand commands[] =
@@ -1478,7 +1477,7 @@ static const CRPCCommand commands[] =
     { "blockchain",         "verifychain",            &verifychain,            true,  {"checklevel","nblocks"} },
 
     { "blockchain",         "preciousblock",          &preciousblock,          true,  {"blockhash"} },
-    { "blockchain",         "getbestchaintps",        &getbestchaintps,        true,  {} },
+    { "blockchain",         "getbestchaintps",        &getbestchaintps,        true,  {"nblocks"} },
 
     /* Not shown in help */
     { "hidden",             "invalidateblock",        &invalidateblock,        true,  {"blockhash"} },
