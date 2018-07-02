@@ -1445,11 +1445,12 @@ static UniValue getbestchaintps(const JSONRPCRequest& request)
     int nTxDiff = tip->nChainTx - pindexPast->nChainTx;
     int nTimeDiff = tip->GetMedianTimePast() - pindexPast->GetMedianTimePast();
 
-    UniValue ret(UniValue::VOBJ);
+    UniValue ret(UniValue::VNUM/*VOBJ*/);
     double tps = 0;
     if(nTimeDiff > 0){
         tps = ((double)nTxDiff) / nTimeDiff;
-        ret.pushKV("tps", tps);
+        //ret.pushKV("tps", tps);
+        ret.pushKV(tps);
     }
 
     return ret/*tps*/;
