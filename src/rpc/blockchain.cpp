@@ -1445,10 +1445,14 @@ static UniValue getbestchaintps(const JSONRPCRequest& request)
     int nTxDiff = tip->nChainTx - pindexPast->nChainTx;
     int nTimeDiff = tip->GetMedianTimePast() - pindexPast->GetMedianTimePast();
 
+    UniValue ret(UniValue::VOBJ);
     double tps = 0;
-    if(nTimeDiff > 0) tps = ((double)nTxDiff) / nTimeDiff;
+    if(nTimeDiff > 0){
+        tps = ((double)nTxDiff) / nTimeDiff;
+        ret.pushKV("tps", tps);
+    }
 
-    return tps;
+    return ret/*tps*/;
 }
 
 static const CRPCCommand commands[] =
