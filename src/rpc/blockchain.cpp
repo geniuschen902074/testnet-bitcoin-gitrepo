@@ -1422,9 +1422,9 @@ static UniValue getbestchaintps(const JSONRPCRequest& request)
         throw std::runtime_error(
             "getchaintxstats ( nblocks blockhash )\n"
             "\nCompute statistics about the rate of transactions in the best chain.\n"
-            "\nResult:\n"
             "\nArguments:\n"
             "1. nblocks      (numeric, optional) Size of the window in number of blocks (default: one month).\n"
+            "\nResult:\n"
             "n.nnn       (numeric) tps\n"
             "\nExamples:\n"
             + HelpExampleCli("getbestchaintps", "")
@@ -1434,9 +1434,15 @@ static UniValue getbestchaintps(const JSONRPCRequest& request)
 
     const CBlockIndex* tip = chainActive.Tip();
     assert(tip != nullptr);
-    int blockcount = request.params[0].get_int();
-    if (blockcount < 0 || (blockcount > 0 && blockcount >= tip->nHeight)) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid block count: should be between 0 and the tip's height - 1");
+    int blockcount;
+    if (request.params[0].isNull()){
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "why?");
+    }
+    else{
+        blockcount = request.params[0].get_int();
+        if (blockcount < 0 || (blockcount > 0 && blockcount >= tip->nHeight)) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid block count: should be between 0 and the tip's height - 1");
+        }
     }
 
     //const CBlockIndex* genesis = chainActive.Genesis();
