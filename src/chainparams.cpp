@@ -8,6 +8,11 @@
 
 #include "tinyformat.h"
 #include "util.h" /*Chen*//*gArgs can be included here*/
+/*Chen*/
+#include <stdio.h>
+#include <time.h>
+//#include "pow.h"
+#include "arith_uint256.h"
 #include "utilstrencodings.h"
 
 #include <assert.h>
@@ -15,6 +20,27 @@
 #include <boost/assign/list_of.hpp>
 
 #include "chainparamsseeds.h"
+
+
+bool myCheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params& params)
+{
+    bool fNegative;
+    bool fOverflow;
+    arith_uint256 bnTarget;
+
+    bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
+
+    // Check range
+    if (fNegative || bnTarget == 0 || fOverflow || bnTarget > UintToArith256(params.powLimit))
+        return false;
+
+    // Check proof of work matches claimed amount
+    if (UintToArith256(hash) > bnTarget)
+        return false;
+
+    return true;
+}
+
 
 static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesisOutputScript, uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 {
@@ -236,11 +262,32 @@ public:
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock == uint256S("0x000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"));
         assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
-        */
+        // further change to dynamic Bits and genesis creation
         genesis = CreateGenesisBlock(1296688602, 2, 0x207fffff, 1, 50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock == uint256S("0x0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"));
         assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
+        */
+        uint32_t BITS = strtoul(GetArg("-BITS", "0x207fffff").c_str(), NULL, 16); fprintf(stderr, "configured BITS %x\n\n", BITS);
+        int flag = 0;
+        while(!flag){
+            uint32_t t = time(NULL);
+            fprintf(stderr, "to mine the genesis block. time %u\n", t);
+            //mine the genesis
+
+            uint32_t n; //nonce to find
+            for(n = 0; n != 4294967295; ++n){
+
+                genesis = CreateGenesisBlock(t, n, BITS, 1, 50 * COIN);
+
+                if ( myCheckProofOfWork(genesis.GetHash(), genesis.nBits, consensus) ){ //mined !!
+                    fprintf(stderr, "found. nonce %u\n\n", n);
+                    flag = 1;
+                    break; //from this round(t)
+                }
+            }
+        }
+        consensus.hashGenesisBlock = genesis.GetHash();
 
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -344,10 +391,33 @@ public:
         nDefaultPort = 18444;
         nPruneAfterHeight = 1000;
 
+        /* Chen
         genesis = CreateGenesisBlock(1296688602, 2, 0x207fffff, 1, 50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock == uint256S("0x0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"));
         assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
+        */
+        // Chen: dynamic Bits and genesis creation
+        uint32_t BITS = strtoul(GetArg("-BITS", "0x207fffff").c_str(), NULL, 16); fprintf(stderr, "configured BITS %x\n\n", BITS);
+        int flag = 0;
+        while(!flag){
+            uint32_t t = time(NULL);
+            fprintf(stderr, "to mine the genesis block. time %u\n", t);
+            //mine the genesis
+
+            uint32_t n; //nonce to find
+            for(n = 0; n != 4294967295; ++n){
+
+                genesis = CreateGenesisBlock(t, n, BITS, 1, 50 * COIN);
+
+                if ( myCheckProofOfWork(genesis.GetHash(), genesis.nBits, consensus) ){ //mined !!
+                    fprintf(stderr, "found. nonce %u\n\n", n);
+                    flag = 1;
+                    break; //from this round(t)
+                }
+            }
+        }
+        consensus.hashGenesisBlock = genesis.GetHash();
 
         vFixedSeeds.clear(); //!< Regtest mode doesn't have any fixed seeds.
         vSeeds.clear();      //!< Regtest mode doesn't have any DNS seeds.
